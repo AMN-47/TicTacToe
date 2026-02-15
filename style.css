@@ -33,7 +33,7 @@ body {
 
 h1 {
     text-align: center;
-    color: #667eea;
+    color: #261fb7;
     font-size: 3rem;
     margin-bottom: 30px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
@@ -92,7 +92,7 @@ h1 {
 }
 
 .btn-primary {
-    background: #667eea;
+    background: #261fb7;
     color: white;
 }
 
