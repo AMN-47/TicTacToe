@@ -1,3 +1,11 @@
+
+.sora-fancyfont {
+  font-family: "Sora", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 300;
+  font-style: normal;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -5,8 +13,8 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: "Sora", sans-serif;
+    background: linear-gradient(135deg, #ead9e8 0%, #2474be 100%);
     min-height: 100vh;
     display: flex;
     justify-content: center;
