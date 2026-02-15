@@ -58,6 +58,8 @@ const GameController = (() => {
             Player(p1Name, "X"),
             Player(p2Name, "O")
         ];
+        currentPlayerIndex = 0;
+        gameOver = false;
     };
 
     const getCurrentPlayer = () => {
@@ -76,8 +78,11 @@ const GameController = (() => {
             if (board[a] !== "" && 
                 board[a] === board[b] && 
                 board[a] === board[c]) {
+                // Find which player has this marker
+                const winningMarker = board[a];
+                const winningPlayer = players.find(p => p.marker === winningMarker);
                 return {
-                    winner: getCurrentPlayer(),
+                    winner: winningPlayer,
                     winningCells: combination
                 };
             }
@@ -86,17 +91,25 @@ const GameController = (() => {
     };
 
     const playRound = (cellIndex) => {
-        if (gameOver) return false;
+        if (gameOver) {
+            console.log("Game is over!");
+            return { success: false };
+        }
 
         const currentPlayer = getCurrentPlayer();
+        console.log(`Playing round: Player ${currentPlayer.name} (${currentPlayer.marker}) at cell ${cellIndex}`);
         
         // Try to place marker
         if (Gameboard.setCell(cellIndex, currentPlayer.marker)) {
+            console.log("Marker placed successfully");
+            console.log("Board state:", Gameboard.getBoard());
+            
             // Check for winner
             const winResult = checkWinner();
             if (winResult) {
                 gameOver = true;
                 winner = winResult;
+                console.log("Winner found:", winResult.winner.name);
                 return { 
                     success: true, 
                     gameOver: true, 
@@ -107,6 +120,7 @@ const GameController = (() => {
             // Check for tie
             if (Gameboard.isFull()) {
                 gameOver = true;
+                console.log("Game is a tie!");
                 return { 
                     success: true, 
                     gameOver: true, 
@@ -122,6 +136,7 @@ const GameController = (() => {
             };
         }
         
+        console.log("Cell already taken!");
         return { success: false };
     };
 
@@ -130,6 +145,7 @@ const GameController = (() => {
         currentPlayerIndex = 0;
         gameOver = false;
         winner = null;
+        console.log("Game reset");
     };
 
     const isGameOver = () => gameOver;
@@ -156,14 +172,20 @@ const DisplayController = (() => {
     const cells = document.querySelectorAll('.cell');
 
     const init = () => {
+        console.log("Initializing DisplayController");
+        console.log("Cells found:", cells.length);
+        
         startBtn.addEventListener('click', startGame);
         restartBtn.addEventListener('click', restartGame);
-        cells.forEach(cell => {
+        
+        cells.forEach((cell, index) => {
+            console.log(`Adding listener to cell ${index}`);
             cell.addEventListener('click', handleCellClick);
         });
     };
 
     const startGame = () => {
+        console.log("Starting game");
         const player1Name = player1Input.value;
         const player2Name = player2Input.value;
 
@@ -178,18 +200,43 @@ const DisplayController = (() => {
     };
 
     const restartGame = () => {
+        console.log("Restarting game");
         GameController.resetGame();
-        updateDisplay();
-        renderBoard();
+        
+        // Clear all cells
+        cells.forEach(cell => {
+            cell.textContent = '';
+            cell.className = 'cell';
+        });
+        
+        // Clear result display
         resultDisplay.textContent = '';
         resultDisplay.className = 'result-display';
+        
+        // Update current player display
+        updateDisplay();
     };
 
     const handleCellClick = (e) => {
-        if (GameController.isGameOver()) return;
+        console.log("Cell clicked!");
+        
+        if (GameController.isGameOver()) {
+            console.log("Game is over, ignoring click");
+            return;
+        }
 
-        const cellIndex = parseInt(e.target.dataset.index);
+        const cell = e.target;
+        const cellIndex = parseInt(cell.dataset.index);
+        console.log(`Cell index: ${cellIndex}`);
+        
+        // Check if cell is already taken
+        if (cell.classList.contains('taken')) {
+            console.log("Cell already taken");
+            return;
+        }
+
         const result = GameController.playRound(cellIndex);
+        console.log("Play round result:", result);
 
         if (result.success) {
             renderBoard();
@@ -209,17 +256,24 @@ const DisplayController = (() => {
     const updateDisplay = () => {
         const currentPlayer = GameController.getCurrentPlayer();
         currentPlayerDiv.textContent = `Current Turn: ${currentPlayer.name} (${currentPlayer.marker})`;
+        console.log("Display updated:", currentPlayer.name);
     };
 
     const renderBoard = () => {
+        console.log("Rendering board");
         const board = Gameboard.getBoard();
+        console.log("Board state:", board);
+        
         cells.forEach((cell, index) => {
-            cell.textContent = board[index];
+            const marker = board[index];
+            console.log(`Cell ${index}: ${marker}`);
+            
+            cell.textContent = marker;
             cell.className = 'cell';
             
-            if (board[index] !== "") {
+            if (marker !== "") {
                 cell.classList.add('taken');
-                cell.classList.add(board[index].toLowerCase());
+                cell.classList.add(marker.toLowerCase());
             }
         });
     };
@@ -248,28 +302,6 @@ const DisplayController = (() => {
 
 // Initialize the game when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM Content Loaded");
     DisplayController.init();
 });
-
-// Console testing functions (for development/testing)
-const testGame = () => {
-    console.log("=== Testing Tic Tac Toe ===");
-    
-    GameController.initializePlayers("Alice", "Bob");
-    console.log("Players initialized:", GameController.getCurrentPlayer());
-    
-    // Simulate a game
-    console.log("\nPlaying moves...");
-    
-    const moves = [0, 1, 3, 4, 6]; // X should win
-    moves.forEach(move => {
-        const result = GameController.playRound(move);
-        console.log(`Move at ${move}:`, result);
-        console.log("Board:", Gameboard.getBoard());
-    });
-    
-    console.log("\nGame Over:", GameController.isGameOver());
-};
-
-// Uncomment to test in console:
-// testGame();
